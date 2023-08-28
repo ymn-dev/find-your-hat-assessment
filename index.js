@@ -9,6 +9,7 @@
 /* step 1 : generate a field size = row*col, saved the field in Field instance
    step 2 : generating start and goal, they will not be on the same location so 
    input row = 1 col = 1 will be blocked, also blocking invalid stuffs like 0 and minus
+   also adding starting and goal location to Field instance
    step 3 : print the field out to see if it's properly generated
    step 4 :
    step 5 :
@@ -35,9 +36,11 @@ const pathCharacter = "*";
 class Field {
   constructor(row, col) {
     const generator = Field.generateField(row, col);
-    this._field = generator;
+    this._field = generator[0];
     this._row = row;
     this._col = col;
+    this._startLocation = generator[1];
+    this._hatLocation = generator[2];
     // Set the "home" position before the game starts
   }
   static generateField(row, col, mode = "N") {
@@ -53,12 +56,29 @@ class Field {
         myField[i].push(fieldCharacter);
       }
     }
-    return myField;
+    //step 2.1 making start/goal
+    const generateStartRow = Math.floor(Math.random() * row);
+    const generateStartCol = Math.floor(Math.random() * col);
+    const startLocation = [generateStartRow, generateStartCol];
+    let generateHatRow;
+    let generateHatCol;
+    do {
+      generateHatRow = Math.floor(Math.random() * row);
+      generateHatCol = Math.floor(Math.random() * col);
+      //re-random until goal position isn't on top of start
+    } while (generateStartRow === generateHatRow && generateStartCol === generateHatCol);
+    myField[generateStartRow][generateStartCol] = pathCharacter;
+    myField[generateHatRow][generateHatCol] = hat;
+    const hatLocation = [generateHatRow, generateHatCol];
+    return [myField, startLocation, hatLocation];
   }
 
   //print field method to make it eaier
   print() {
+    //step 3
     clear();
+    console.log(this._startLocation);
+    console.log(this._hatLocation);
     // your print map code here
     this._field.forEach((row) => console.log(row.join("")));
   }
