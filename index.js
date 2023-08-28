@@ -13,7 +13,7 @@
    step 3 : print the field out to see if it's properly generated
    step 4 : adding holes 1/3 of total field size, must not be on start and goal position obviously
    step 5 : adding input prompt to manually select the map size
-   step 6 :
+   step 6 : adding play method, just input taking and testing for now
    step 7 :
    step 8 :
    step 9 :
@@ -87,6 +87,18 @@ class Field {
 
     return [myField, startLocation, hatLocation, holes];
   }
+  //step6
+  play(mode = "N") {
+    while (true) {
+      this.print();
+      console.log("How to play: W A S D to move!");
+      let input = prompt("Which Way?: ").toUpperCase(); //make input not case sensitive
+      if (input.length === 1 && (input === "W" || input === "A" || input === "S" || input === "D")) {
+      } else {
+        console.log("Invalid Input");
+      }
+    }
+  }
 
   //print field method to make it eaier
   print() {
@@ -101,15 +113,16 @@ class Field {
 
   // the rest of your code starts here.
 }
-// let play = new Field(5, 5);
-// play.print();
-while (true) {
-  let createField;
-  const height = parseInt(prompt("How many rows?: "));
-  const width = parseInt(prompt("How many columns?: "));
-  if (!isNaN(height) && !isNaN(width)) {
-    createField = new Field(height, width);
-    createField.print();
-    break;
-  }
-}
+let play = new Field(5, 5);
+play.play();
+//step 5
+// while (true) {
+//   let createField;
+//   const height = parseInt(prompt("How many rows?: "));
+//   const width = parseInt(prompt("How many columns?: "));
+//   if (!isNaN(height) && !isNaN(width)) {
+//     createField = new Field(height, width);
+//     createField.print();
+//     break;
+//   }
+// }
