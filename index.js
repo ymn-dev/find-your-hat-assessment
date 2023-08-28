@@ -28,15 +28,14 @@
    step 7.4 : the move method should get call in play method, if reach end game condition then terminate the loop
    print the text otherwise just keep inputting
 
-   TO DO:
    step 8 : GAME DONE !! but you need to guarantee a win route otherwise user will be mad!
    we should test the map whether you can win or not first before letting user play it
    step 9 : think about how to solve a maze, you just walk a path that's walkable until you reach a goal
-   that's a recursive function! just looking at directions available to our position like tree nodes
+   that's a recursive search! just looking at directions available to our position like tree nodes
    keep going one direction until you can't, then tell the previous call that you cant go anymore so it go other way
    keep doing it until you find a goal or just stuck in the field
    step 9.1 : to do that you need to clone array of the same size as field to mark the location of where you went
-   let's name it wasHere for now
+   let's name it this._wasHere for now
    step10 : if you stuck in the field with no where to go, it means you don't have a solution to that map
    just generate a new map
    step11 :
@@ -60,9 +59,9 @@ const winText = "You Win!";
 class Field {
   constructor(row, col) {
     const generator = Field.generateField(row, col);
-    this._field = generator[0];
     this._row = row;
     this._col = col;
+    this._field = generator[0];
     this._startLocation = generator[1];
     this._hatLocation = generator[2];
     this._holes = generator[3];
@@ -109,9 +108,39 @@ class Field {
       }
     }
 
+    //announcing this just to make recursiveSolve class method
+    this._wasHere = Array.from(myField, () => Array(myField[0].length).fill(false));
+    //setting value on myField first to use canRecursiveSolve
+    this._field = myField;
+    this._startLocation = startLocation;
+    this._hatLocation = hatLocation;
+    this._holes = holes;
+    if (!Field.canRecursiveSolve(generateStartRow, generateStartCol)) {
+      console.log("Generated field is not solvable. Regenerating...");
+      return this.generateField(row, col, mode);
+    }
+
     return [myField, startLocation, hatLocation, holes];
   }
+  //step 9-10
+  static canRecursiveSolve(x, y) {
+    const endRow = this._hatLocation[0];
+    const endCol = this._hatLocation[1]; //set end goal
 
+    if (x === endRow && y === endCol) return true; //if reach goal, it's solvable
+    if (this._field[x][y] === hole || this._wasHere[x][y]) return false;
+    //if we end up in a hole or go back to where we were, return false
+    this._wasHere[x][y] = true; //mark current location as checked
+
+    /*moving up, checking whether you're at the edge or not
+        then we call this function again (recursive), it will keep going up until it cant (return false)
+        then it will move down to another directions(s) marking wasHere along the way*/
+    if (x !== 0 && this.canRecursiveSolve(x - 1, y)) return true; //going up until nothing left
+    if (x !== this._field.length - 1 && this.canRecursiveSolve(x + 1, y)) return true; //then going down(not marked)
+    if (y !== 0 && this.canRecursiveSolve(x, y - 1)) return true; //then left
+    if (y !== this._field[0].length - 1 && this.canRecursiveSolve(x, y + 1)) return true; //then right
+    return false;
+  }
   //step6
   play(mode = "N") {
     //step 7
@@ -185,7 +214,7 @@ class Field {
     while (true) {
       this.print();
       console.log("How to play: W A S D to move!");
-      let input = prompt("Which Way?: ").toUpperCase(); //make input not case sensitive
+      let input = prompt("Which way?: ").toUpperCase(); //make input not case sensitive
       if (input.length === 1 && (input === "W" || input === "A" || input === "S" || input === "D")) {
         let result = move(input);
         if (!result[0]) {
@@ -202,7 +231,7 @@ class Field {
   //print field method to make it eaier
   print() {
     //step 3
-    clear();
+    // clear();
     // your print map code here
     this._field.forEach((row) => console.log(row.join("")));
   }
