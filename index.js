@@ -38,7 +38,7 @@
    let's name it this._wasHere for now
    step10 : if you stuck in the field with no where to go, it means you don't have a solution to that map
    just generate a new map
-   step11 :
+   step11 : optimizing move function
    step12 :
    step13 :
 
@@ -52,6 +52,7 @@ const hat = "^";
 const hole = "O";
 const fieldCharacter = "░";
 const pathCharacter = "*";
+const pathTaken = " ";
 const mapLoseText = "You left the map";
 const holeLoseText = "You fell into a hole!";
 const winText = "You Win!";
@@ -115,6 +116,7 @@ class Field {
     this._startLocation = startLocation;
     this._hatLocation = hatLocation;
     this._holes = holes;
+    //step 10
     if (!Field.canRecursiveSolve(generateStartRow, generateStartCol)) {
       console.log("Generated field is not solvable. Regenerating...");
       return this.generateField(row, col, mode);
@@ -122,7 +124,7 @@ class Field {
 
     return [myField, startLocation, hatLocation, holes];
   }
-  //step 9-10
+  //step 9
   static canRecursiveSolve(x, y) {
     const endRow = this._hatLocation[0];
     const endCol = this._hatLocation[1]; //set end goal
@@ -145,71 +147,38 @@ class Field {
   play(mode = "N") {
     //step 7
     const move = (key) => {
-      let myPosition = this._startLocation;
-      const arrayComparision = (arrSource, arrToFind) => {
-        const index = arrSource.findIndex((arrSourceItem) => JSON.stringify(arrSourceItem) === JSON.stringify(arrToFind));
-        return index;
+      const directions = {
+        W: [-1, 0], // Up
+        A: [0, -1], // Left
+        S: [1, 0], // Down
+        D: [0, 1], // Right
       };
-      if (key === "W") {
-        if (myPosition[0] === 0) {
-          return [false, mapLoseText]; //checking out of bound up
-        } else {
-          myPosition[0]--;
-          if (arrayComparision(this._holes, myPosition) > -1) {
-            return [false, holeLoseText];
-          } else if (JSON.stringify(myPosition) === JSON.stringify(this._hatLocation)) {
-            return [false, winText];
-          } else {
-            this._field[myPosition[0]][myPosition[1]] = pathCharacter;
-            return [true];
-          }
-        }
+
+      if (!(key in directions)) {
+        return [false, "Invalid Input"];
       }
-      if (key === "A") {
-        if (myPosition[1] === 0) {
-          return [false, mapLoseText]; //checking out of bound left
-        } else {
-          myPosition[1]--;
-          if (arrayComparision(this._holes, myPosition) > -1) {
-            return [false, holeLoseText];
-          } else if (JSON.stringify(myPosition) === JSON.stringify(this._hatLocation)) {
-            return [false, winText];
-          } else {
-            this._field[myPosition[0]][myPosition[1]] = pathCharacter;
-            return [true];
-          }
-        }
+
+      const direction = directions[key];
+      let newRow = this._startLocation[0] + direction[0];
+      let newCol = this._startLocation[1] + direction[1];
+
+      if (newRow < 0 || newRow >= this._field.length || newCol < 0 || newCol >= this._field[0].length) {
+        return [false, mapLoseText];
       }
-      if (key === "S") {
-        if (myPosition[0] === this._field.length - 1) {
-          return [false, mapLoseText]; //checking out of bound down
-        } else {
-          myPosition[0]++;
-          if (arrayComparision(this._holes, myPosition) > -1) {
-            return [false, holeLoseText];
-          } else if (JSON.stringify(myPosition) === JSON.stringify(this._hatLocation)) {
-            return [false, winText];
-          } else {
-            this._field[myPosition[0]][myPosition[1]] = pathCharacter;
-            return [true];
-          }
-        }
+
+      if (this._field[newRow][newCol] === hole) {
+        return [false, holeLoseText];
       }
-      if (key === "D") {
-        if (myPosition[1] === this._field[0].length - 1) {
-          return [false, mapLoseText]; //checking out of bound right
-        } else {
-          myPosition[1]++;
-          if (arrayComparision(this._holes, myPosition) > -1) {
-            return [false, holeLoseText];
-          } else if (JSON.stringify(myPosition) === JSON.stringify(this._hatLocation)) {
-            return [false, winText];
-          } else {
-            this._field[myPosition[0]][myPosition[1]] = pathCharacter;
-            return [true];
-          }
-        }
+
+      if (this._field[newRow][newCol] === hat) {
+        return [false, winText];
       }
+
+      this._field[this._startLocation[0]][this._startLocation[1]] = pathTaken; // mark previous location as pathTaken
+      this._field[newRow][newCol] = pathCharacter; // mark new location as pathCharacter
+      this._startLocation = [newRow, newCol]; // update the starting position
+
+      return [true];
     };
     while (true) {
       this.print();
@@ -231,7 +200,7 @@ class Field {
   //print field method to make it eaier
   print() {
     //step 3
-    // clear();
+    clear();
     // your print map code here
     this._field.forEach((row) => console.log(row.join("")));
   }
