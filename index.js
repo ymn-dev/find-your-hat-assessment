@@ -80,7 +80,7 @@ class Field {
     this._startLocation = generator[1];
     this._hatLocation = generator[2];
     this._holes = generator[3];
-    this._playSpace = row * col - 2 - Math.floor((row * col) / 3);
+    this._playSpace = row * col - 2 - Math.floor((row * col) / 3); //remove start,goal and bombs
   }
   static generateField(row, col, mode = "N") {
     if (row < 2 && col < 2) {
@@ -211,7 +211,7 @@ class Field {
     let successfullyPutAHole = false;
     while (true) {
       this.print();
-      console.log("How to play: W A S D to move! H to stay still");
+      console.log("How to play: W A S D to move!! H to stay still");
       if (mode === "H") {
         console.log(`In hard mode, a random ${holeName} will appear every ${stepsUntilMoreHole} steps.`);
       }
@@ -258,14 +258,9 @@ class Field {
       console.log(borderCharacter + row.join("") + borderCharacter);
     });
     console.log(border);
-    console.log(this._playSpace);
+    // console.log(this._playSpace);
   }
-
-  // the rest of your code starts here.
 }
-// let play = new Field(5, 5);
-// play.play();
-//step 5
 let previousSettings = null;
 let createField;
 let height, width, mode;
