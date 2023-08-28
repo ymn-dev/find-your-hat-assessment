@@ -213,7 +213,7 @@ class Field {
                 successfullyPutAHole = true;
                 this._playSpace--;
               }
-            } while (!successfullyPutAHole);
+            } while (!successfullyPutAHole && this._playSpace > 0);
             stepCount = 0;
             successfullyPutAHole = false;
           }
