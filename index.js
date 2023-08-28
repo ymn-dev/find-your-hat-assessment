@@ -12,7 +12,7 @@
    also adding starting and goal location to Field instance
    step 3 : print the field out to see if it's properly generated
    step 4 : adding holes 1/3 of total field size, must not be on start and goal position obviously
-   step 5 :
+   step 5 : adding input prompt to manually select the map size
    step 6 :
    step 7 :
    step 8 :
@@ -101,5 +101,15 @@ class Field {
 
   // the rest of your code starts here.
 }
-let play = new Field(5, 5);
-play.print();
+// let play = new Field(5, 5);
+// play.print();
+while (true) {
+  let createField;
+  const height = parseInt(prompt("How many rows?: "));
+  const width = parseInt(prompt("How many columns?: "));
+  if (!isNaN(height) && !isNaN(width)) {
+    createField = new Field(height, width);
+    createField.print();
+    break;
+  }
+}
