@@ -44,6 +44,7 @@
    step 12.2 :  we need to keep track of players steps in play
    step 12.3 :  we make a design choice whether to guaranteed a path when generate bomb or not
    step13 : styling the game
+   step14 : implementing win streak, win-lose score
 
 */
 
@@ -62,6 +63,10 @@ const mapLoseText = "YOU GOT ZAPPED!";
 const holeLoseText = "YOU DIED! CAREFUL WITH THE BOMB";
 const winText = "YOU FOUND THE LEGENDARY TOME!";
 const stepsUntilMoreHole = 3;
+let win = 0;
+let lose = 0;
+let winStreak = 0;
+let maxWinStreak = 0;
 
 class Field {
   constructor(row, col) {
@@ -170,14 +175,23 @@ class Field {
       let newCol = this._startLocation[1] + direction[1];
 
       if (newRow < 0 || newRow >= this._field.length || newCol < 0 || newCol >= this._field[0].length) {
+        if (winStreak > maxWinStreak) maxWinStreak = winStreak;
+        if (winStreak > 0) winStreak = 0;
+        lose++;
         return [false, mapLoseText];
       }
 
       if (this._field[newRow][newCol] === hole) {
+        if (winStreak > maxWinStreak) maxWinStreak = winStreak;
+        if (winStreak > 0) winStreak = 0;
+        lose++;
         return [false, holeLoseText];
       }
 
       if (this._field[newRow][newCol] === hat) {
+        win++;
+        winStreak++;
+        if (winStreak > maxWinStreak) maxWinStreak = winStreak;
         return [false, winText];
       }
 
@@ -233,6 +247,7 @@ class Field {
   print() {
     //step 3
     clear();
+    console.log(`WIN ${win} - ${lose} LOSE, WIN STREAK: ${winStreak}/${maxWinStreak} MAX`);
     // your print map code here
     const border = borderCharacter.repeat(this._col + 2);
     console.log(border);
@@ -247,19 +262,40 @@ class Field {
 // let play = new Field(5, 5);
 // play.play();
 //step 5
+let previousSettings = null;
+let createField;
+let height, width, mode;
 while (true) {
-  let createField;
-  const height = parseInt(prompt("How many rows?: "));
-  const width = parseInt(prompt("How many columns?: "));
+  if (previousSettings !== null) {
+    //saved settings to keep generating the same map
+    const continueGame = prompt("CONTINUE? (Y/N): ").toUpperCase(); //ask whether continue playing or not
+    if (continueGame !== "Y") {
+      console.log(`SCORE: ${win}-${lose} MAX WIN STREAK: ${maxWinStreak} IN ${height}x${width} ${mode === "H" ? "HARD" : "NORMAL"}`);
+      break;
+    }
+  }
+  //if no setting
+  if (!previousSettings) {
+    height = parseInt(prompt("How many rows?: "));
+    width = parseInt(prompt("How many columns?: "));
+  }
+  //if input valid numbers, ask mode next otherwise restart
   if (!isNaN(height) && !isNaN(width)) {
-    let mode;
-    do {
-      mode = prompt("Normal or hard mode? (N/H): ").toUpperCase();
-      if (mode !== "N" && mode !== "H") console.log("Invalid input, try again");
-    } while (mode !== "N" && mode !== "H");
+    if (!previousSettings || !previousSettings.mode) {
+      do {
+        //asking mode
+        mode = prompt("Normal or hard mode? (N/H): ").toUpperCase();
+        if (mode !== "N" && mode !== "H") {
+          console.log("Invalid input, try again");
+        }
+      } while (mode !== "N" && mode !== "H");
+    } else {
+      mode = previousSettings.mode;
+    }
+
     createField = new Field(height, width, mode);
     createField.play(mode);
-    break;
+    previousSettings = { height, width, mode }; //can be anything, just a flag
   } else {
     console.log("Invalid Input(s), try again!");
   }
