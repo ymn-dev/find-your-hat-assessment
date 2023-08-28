@@ -27,9 +27,18 @@
    adding converting array to JSON string as helper function inside move()
    step 7.4 : the move method should get call in play method, if reach end game condition then terminate the loop
    print the text otherwise just keep inputting
-   step 8 :
-   step 9 :
-   step10 :
+
+   TO DO:
+   step 8 : GAME DONE !! but you need to guarantee a win route otherwise user will be mad!
+   we should test the map whether you can win or not first before letting user play it
+   step 9 : think about how to solve a maze, you just walk a path that's walkable until you reach a goal
+   that's a recursive function! just looking at directions available to our position like tree nodes
+   keep going one direction until you can't, then tell the previous call that you cant go anymore so it go other way
+   keep doing it until you find a goal or just stuck in the field
+   step 9.1 : to do that you need to clone array of the same size as field to mark the location of where you went
+   let's name it wasHere for now
+   step10 : if you stuck in the field with no where to go, it means you don't have a solution to that map
+   just generate a new map
    step11 :
    step12 :
    step13 :
@@ -102,6 +111,7 @@ class Field {
 
     return [myField, startLocation, hatLocation, holes];
   }
+
   //step6
   play(mode = "N") {
     //step 7
@@ -199,16 +209,16 @@ class Field {
 
   // the rest of your code starts here.
 }
-let play = new Field(5, 5);
-play.play();
+// let play = new Field(5, 5);
+// play.play();
 //step 5
-// while (true) {
-//   let createField;
-//   const height = parseInt(prompt("How many rows?: "));
-//   const width = parseInt(prompt("How many columns?: "));
-//   if (!isNaN(height) && !isNaN(width)) {
-//     createField = new Field(height, width);
-//     createField.print();
-//     break;
-//   }
-// }
+while (true) {
+  let createField;
+  const height = parseInt(prompt("How many rows?: "));
+  const width = parseInt(prompt("How many columns?: "));
+  if (!isNaN(height) && !isNaN(width)) {
+    createField = new Field(height, width);
+    createField.play();
+    break;
+  }
+}
