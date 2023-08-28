@@ -14,7 +14,19 @@
    step 4 : adding holes 1/3 of total field size, must not be on start and goal position obviously
    step 5 : adding input prompt to manually select the map size
    step 6 : adding play method, just input taking and testing for now
-   step 7 :
+   step 7 : adding move method to use with play, it should know our current location and where to go
+   then update the map accordingly
+   step 7.05: if win or lose, the game should end (end game condition)
+   step 7.1 : inside any move directions(Up, Down, Left, Right), it should check whether you're still
+   in the play field, otherwise you will auto lose
+   step 7.2 : inside any move directions, it should check whether the position you're going is end game condition
+   if it's not, update map and continue to play
+   step 7.3 : FOR ME, debugging array comparision
+   console.log([[1, 2], [3], [4, 5]].indexOf([1, 2])); this returns -1
+   console.log(JSON.stringify([[1, 2], [3], [4, 5]]).indexOf(JSON.stringify([1, 2]))); this returns 1
+   adding converting array to JSON string as helper function inside move()
+   step 7.4 : the move method should get call in play method, if reach end game condition then terminate the loop
+   print the text otherwise just keep inputting
    step 8 :
    step 9 :
    step10 :
@@ -32,6 +44,9 @@ const hat = "^";
 const hole = "O";
 const fieldCharacter = "░";
 const pathCharacter = "*";
+const mapLoseText = "You left the map";
+const holeLoseText = "You fell into a hole!";
+const winText = "You Win!";
 
 class Field {
   constructor(row, col) {
@@ -89,11 +104,85 @@ class Field {
   }
   //step6
   play(mode = "N") {
+    //step 7
+    const move = (key) => {
+      let myPosition = this._startLocation;
+      const arrayComparision = (arrSource, arrToFind) => {
+        const index = arrSource.findIndex((arrSourceItem) => JSON.stringify(arrSourceItem) === JSON.stringify(arrToFind));
+        return index;
+      };
+      if (key === "W") {
+        if (myPosition[0] === 0) {
+          return [false, mapLoseText]; //checking out of bound up
+        } else {
+          myPosition[0]--;
+          if (arrayComparision(this._holes, myPosition) > -1) {
+            return [false, holeLoseText];
+          } else if (JSON.stringify(myPosition) === JSON.stringify(this._hatLocation)) {
+            return [false, winText];
+          } else {
+            this._field[myPosition[0]][myPosition[1]] = pathCharacter;
+            return [true];
+          }
+        }
+      }
+      if (key === "A") {
+        if (myPosition[1] === 0) {
+          return [false, mapLoseText]; //checking out of bound left
+        } else {
+          myPosition[1]--;
+          if (arrayComparision(this._holes, myPosition) > -1) {
+            return [false, holeLoseText];
+          } else if (JSON.stringify(myPosition) === JSON.stringify(this._hatLocation)) {
+            return [false, winText];
+          } else {
+            this._field[myPosition[0]][myPosition[1]] = pathCharacter;
+            return [true];
+          }
+        }
+      }
+      if (key === "S") {
+        if (myPosition[0] === this._field.length - 1) {
+          return [false, mapLoseText]; //checking out of bound down
+        } else {
+          myPosition[0]++;
+          if (arrayComparision(this._holes, myPosition) > -1) {
+            return [false, holeLoseText];
+          } else if (JSON.stringify(myPosition) === JSON.stringify(this._hatLocation)) {
+            return [false, winText];
+          } else {
+            this._field[myPosition[0]][myPosition[1]] = pathCharacter;
+            return [true];
+          }
+        }
+      }
+      if (key === "D") {
+        if (myPosition[1] === this._field[0].length - 1) {
+          return [false, mapLoseText]; //checking out of bound right
+        } else {
+          myPosition[1]++;
+          if (arrayComparision(this._holes, myPosition) > -1) {
+            return [false, holeLoseText];
+          } else if (JSON.stringify(myPosition) === JSON.stringify(this._hatLocation)) {
+            return [false, winText];
+          } else {
+            this._field[myPosition[0]][myPosition[1]] = pathCharacter;
+            return [true];
+          }
+        }
+      }
+    };
     while (true) {
       this.print();
       console.log("How to play: W A S D to move!");
       let input = prompt("Which Way?: ").toUpperCase(); //make input not case sensitive
       if (input.length === 1 && (input === "W" || input === "A" || input === "S" || input === "D")) {
+        let result = move(input);
+        if (!result[0]) {
+          //this checks true/false in return array, false is end game condition reached
+          console.log(result[1]); //take message attached to it
+          break; //end the game
+        }
       } else {
         console.log("Invalid Input");
       }
@@ -104,9 +193,6 @@ class Field {
   print() {
     //step 3
     clear();
-    // console.log(this._startLocation);
-    // console.log(this._hatLocation);
-    // console.log(this._holes);
     // your print map code here
     this._field.forEach((row) => console.log(row.join("")));
   }
