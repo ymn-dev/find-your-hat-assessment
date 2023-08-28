@@ -67,6 +67,8 @@ let win = 0;
 let lose = 0;
 let winStreak = 0;
 let maxWinStreak = 0;
+//setting whether path taken could be bombed or not
+const safePathTaken = false;
 
 class Field {
   constructor(row, col) {
@@ -74,11 +76,11 @@ class Field {
     this._row = row;
     this._col = col;
     this._field = generator[0];
+    // Set the "home" position before the game starts
     this._startLocation = generator[1];
     this._hatLocation = generator[2];
     this._holes = generator[3];
     this._playSpace = row * col - 2 - Math.floor((row * col) / 3);
-    // Set the "home" position before the game starts
   }
   static generateField(row, col, mode = "N") {
     if (row < 2 && col < 2) {
@@ -109,7 +111,7 @@ class Field {
     const hatLocation = [generateHatRow, generateHatCol];
 
     //step 4 generating holes
-    const maxHole = Math.floor(row * col) / 3;
+    const maxHole = Math.floor((row * col) / 3);
     let holeCount = 0;
     const holes = [];
     while (holeCount < maxHole) {
@@ -164,6 +166,7 @@ class Field {
         A: [0, -1], // Left
         S: [1, 0], // Down
         D: [0, 1], // Right
+        H: [0, 0], // Stay Still
       };
 
       if (!(key in directions)) {
@@ -196,7 +199,7 @@ class Field {
       }
 
       this._field[this._startLocation[0]][this._startLocation[1]] = pathTaken; // mark previous location as pathTaken
-      if (this._field[newRow][newCol] === fieldCharacter) this._playSpace--;
+      if (safePathTaken && this._field[newRow][newCol] === fieldCharacter) this._playSpace--; //only when your path couldnt be bombed
       this._field[newRow][newCol] = pathCharacter; // mark new location as pathCharacter
       this._startLocation = [newRow, newCol]; // update the starting position
 
@@ -208,12 +211,12 @@ class Field {
     let successfullyPutAHole = false;
     while (true) {
       this.print();
-      console.log("How to play: W A S D to move!");
+      console.log("How to play: W A S D to move! H to stay still");
       if (mode === "H") {
         console.log(`In hard mode, a random ${holeName} will appear every ${stepsUntilMoreHole} steps.`);
       }
       let input = prompt("Which way?: ").toUpperCase(); //make input not case sensitive
-      if (input.length === 1 && (input === "W" || input === "A" || input === "S" || input === "D")) {
+      if (input.length === 1 && (input === "W" || input === "A" || input === "S" || input === "D" || input === "H")) {
         let result = move(input);
         if (mode === "H") {
           stepCount++;
@@ -222,7 +225,7 @@ class Field {
             const col = this._field[0].length;
             do {
               const putHoleLocation = [Math.floor(Math.random() * row), Math.floor(Math.random() * col)];
-              if (this._field[putHoleLocation[0]][putHoleLocation[1]] === fieldCharacter) {
+              if (this._field[putHoleLocation[0]][putHoleLocation[1]] === fieldCharacter || (!safePathTaken && this._field[putHoleLocation[0]][putHoleLocation[1]] === pathTaken)) {
                 this._field[putHoleLocation[0]][putHoleLocation[1]] = hole;
                 successfullyPutAHole = true;
                 this._playSpace--;
@@ -255,6 +258,7 @@ class Field {
       console.log(borderCharacter + row.join("") + borderCharacter);
     });
     console.log(border);
+    console.log(this._playSpace);
   }
 
   // the rest of your code starts here.
