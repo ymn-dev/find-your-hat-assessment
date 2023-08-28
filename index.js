@@ -39,8 +39,11 @@
    step10 : if you stuck in the field with no where to go, it means you don't have a solution to that map
    just generate a new map
    step11 : optimizing move function
-   step12 :
-   step13 :
+   step12 : adding hard mode, where bomb dropping every X steps
+   step 12.1 :  we need to take input with mode
+   step 12.2 :  we need to keep track of players steps in play
+   step 12.3 :  we make a design choice whether to guaranteed a path when generate bomb or not
+   step13 : styling the game
 
 */
 
@@ -48,14 +51,17 @@
 
 const prompt = require("prompt-sync")({ sigint: true }); // This sends a SIGINT, or “signal interrupt” message indicating that a user wants to exit a program by press Crtl+c
 const clear = require("clear-screen"); //every turn clear the screen that meant you will not get new field in time you choose the direction
-const hat = "^";
-const hole = "O";
-const fieldCharacter = "░";
-const pathCharacter = "*";
-const pathTaken = " ";
-const mapLoseText = "You left the map";
-const holeLoseText = "You fell into a hole!";
-const winText = "You Win!";
+const hat = "📚";
+const hole = "💣";
+const fieldCharacter = "⬜";
+const pathCharacter = "😎";
+const pathTaken = "🟨";
+const borderCharacter = "⚡";
+const holeName = "bomb";
+const mapLoseText = "YOU GOT ZAPPED!";
+const holeLoseText = "YOU DIED! CAREFUL WITH THE BOMB";
+const winText = "YOU FOUND THE LEGENDARY TOME!";
+const stepsUntilMoreHole = 3;
 
 class Field {
   constructor(row, col) {
@@ -66,6 +72,7 @@ class Field {
     this._startLocation = generator[1];
     this._hatLocation = generator[2];
     this._holes = generator[3];
+    this._playSpace = row * col - 2 - Math.floor((row * col) / 3);
     // Set the "home" position before the game starts
   }
   static generateField(row, col, mode = "N") {
@@ -175,17 +182,42 @@ class Field {
       }
 
       this._field[this._startLocation[0]][this._startLocation[1]] = pathTaken; // mark previous location as pathTaken
+      if (this._field[newRow][newCol] === fieldCharacter) this._playSpace--;
       this._field[newRow][newCol] = pathCharacter; // mark new location as pathCharacter
       this._startLocation = [newRow, newCol]; // update the starting position
 
       return [true];
     };
+
+    //initializing values for tracking steps for step 12
+    let stepCount = 0;
+    let successfullyPutAHole = false;
     while (true) {
       this.print();
       console.log("How to play: W A S D to move!");
+      if (mode === "H") {
+        console.log(`In hard mode, a random ${holeName} will appear every ${stepsUntilMoreHole} steps.`);
+      }
       let input = prompt("Which way?: ").toUpperCase(); //make input not case sensitive
       if (input.length === 1 && (input === "W" || input === "A" || input === "S" || input === "D")) {
         let result = move(input);
+        if (mode === "H") {
+          stepCount++;
+          if (stepCount === stepsUntilMoreHole) {
+            const row = this._field.length;
+            const col = this._field[0].length;
+            do {
+              const putHoleLocation = [Math.floor(Math.random() * row), Math.floor(Math.random() * col)];
+              if (this._field[putHoleLocation[0]][putHoleLocation[1]] === fieldCharacter) {
+                this._field[putHoleLocation[0]][putHoleLocation[1]] = hole;
+                successfullyPutAHole = true;
+                this._playSpace--;
+              }
+            } while (!successfullyPutAHole);
+            stepCount = 0;
+            successfullyPutAHole = false;
+          }
+        }
         if (!result[0]) {
           //this checks true/false in return array, false is end game condition reached
           console.log(result[1]); //take message attached to it
@@ -202,7 +234,12 @@ class Field {
     //step 3
     clear();
     // your print map code here
-    this._field.forEach((row) => console.log(row.join("")));
+    const border = borderCharacter.repeat(this._col + 2);
+    console.log(border);
+    this._field.forEach((row) => {
+      console.log(borderCharacter + row.join("") + borderCharacter);
+    });
+    console.log(border);
   }
 
   // the rest of your code starts here.
@@ -215,8 +252,15 @@ while (true) {
   const height = parseInt(prompt("How many rows?: "));
   const width = parseInt(prompt("How many columns?: "));
   if (!isNaN(height) && !isNaN(width)) {
-    createField = new Field(height, width);
-    createField.play();
+    let mode;
+    do {
+      mode = prompt("Normal or hard mode? (N/H): ").toUpperCase();
+      if (mode !== "N" && mode !== "H") console.log("Invalid input, try again");
+    } while (mode !== "N" && mode !== "H");
+    createField = new Field(height, width, mode);
+    createField.play(mode);
     break;
+  } else {
+    console.log("Invalid Input(s), try again!");
   }
 }
