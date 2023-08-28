@@ -11,7 +11,7 @@
    input row = 1 col = 1 will be blocked, also blocking invalid stuffs like 0 and minus
    also adding starting and goal location to Field instance
    step 3 : print the field out to see if it's properly generated
-   step 4 :
+   step 4 : adding holes 1/3 of total field size, must not be on start and goal position obviously
    step 5 :
    step 6 :
    step 7 :
@@ -41,6 +41,7 @@ class Field {
     this._col = col;
     this._startLocation = generator[1];
     this._hatLocation = generator[2];
+    this._holes = generator[3];
     // Set the "home" position before the game starts
   }
   static generateField(row, col, mode = "N") {
@@ -70,15 +71,30 @@ class Field {
     myField[generateStartRow][generateStartCol] = pathCharacter;
     myField[generateHatRow][generateHatCol] = hat;
     const hatLocation = [generateHatRow, generateHatCol];
-    return [myField, startLocation, hatLocation];
+
+    //step 4 generating holes
+    const maxHole = Math.floor(row * col) / 3;
+    let holeCount = 0;
+    const holes = [];
+    while (holeCount < maxHole) {
+      const putHoleLocation = [Math.floor(Math.random() * row), Math.floor(Math.random() * col)];
+      if (myField[putHoleLocation[0]][putHoleLocation[1]] === fieldCharacter) {
+        myField[putHoleLocation[0]][putHoleLocation[1]] = hole;
+        holes.push(putHoleLocation);
+        holeCount++;
+      }
+    }
+
+    return [myField, startLocation, hatLocation, holes];
   }
 
   //print field method to make it eaier
   print() {
     //step 3
     clear();
-    console.log(this._startLocation);
-    console.log(this._hatLocation);
+    // console.log(this._startLocation);
+    // console.log(this._hatLocation);
+    // console.log(this._holes);
     // your print map code here
     this._field.forEach((row) => console.log(row.join("")));
   }
